@@ -1,6 +1,7 @@
 package algorithms;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -8,16 +9,7 @@ import arbor.mining.rtree.rtree.LeafEntry;
 import arbor.mining.rtree.rtree.SpatialPoint;
 
 public class Version1 {
-	private double minX;
-    private double minY;
-    private double diff;
-
-    public void setting(double x, double y, double d){
-    	minX = x;
-    	minY = y;
-    	diff = d;
-    }
-    
+        
 	// generate all combination size = 2~5
 	public List<List<SpatialPoint>> candExtraction(List<SpatialPoint> src){
 		List<List<SpatialPoint>> result = new ArrayList<List<SpatialPoint>>();
@@ -66,8 +58,8 @@ public class Version1 {
 	}
 
 	public Boolean rangeCheck(List<SpatialPoint> cand, SpatialPoint center, double range){
-		double centerX =  center.getCords()[0]*diff/10000 + minX;
-		double centerY =  center.getCords()[1]*diff/10000 + minY;
+		double centerX =  center.getCords()[0];
+		double centerY =  center.getCords()[1];
 		
 		for(int i = 0; i < cand.size(); i++){
 			double distance = Distance(centerX, centerY, cand.get(i).getCords()[0], cand.get(i).getCords()[1]);

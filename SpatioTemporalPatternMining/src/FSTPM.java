@@ -14,18 +14,15 @@ import java.util.List;
 import java.util.Map;
 
 import algorithms.Version1;
-import arbor.mining.rtree.rtree.LeafEntry;
 import arbor.mining.rtree.rtree.SpatialPoint;
 import util.Trace;
 
 public class FSTPM {
-	//private RStarTree tree;
 	private RTreeBuilder rbuilder;
 	private Version1 alg1;
     private int dimension;
     private double range;
     private int duration;
-    private double diff;
 	private String inputFile;
 	private String resultFile;
 	private List<Long> insertRunTime;
@@ -46,13 +43,14 @@ public class FSTPM {
 		
 		controller.patternExtraction();
 
+		/*
         controller.writeRuntimeToFile(controller.insertRunTime, "Insertion_runtime.txt");
         controller.writeRuntimeToFile(controller.rangeRunTime, "RangeSearch_runtime.txt");
         controller.writeRuntimeToFile(controller.durationRunTime, "DurationCheck_runtime.txt");
         controller.writeRuntimeToFile(controller.candsRunTime, "Candidates_runtime.txt");
         controller.writeRuntimeToFile(controller.candsRunTime, "rCheck_runtime.txt");
         controller.writeRuntimeToFile(controller.labelRunTime, "LabelPattern_runtime.txt");
-        controller.writeRuntimeToFile(controller.fstpmRunTime, "FSTPM_runtime.txt");
+        controller.writeRuntimeToFile(controller.fstpmRunTime, "FSTPM_runtime.txt");*/
 
 		controller.printResults();
 	}
@@ -70,9 +68,8 @@ public class FSTPM {
 			this.printUsage();
 			System.exit(1);
 		}
-		rbuilder = new RTreeBuilder();
 		
-		//tree = new RStarTree(dimension);
+		rbuilder = new RTreeBuilder();
 		alg1 = new Version1();
 		this.insertRunTime = new ArrayList<Long>();
 		this.rangeRunTime = new ArrayList<Long>();
@@ -96,10 +93,7 @@ public class FSTPM {
             BufferedReader input =  new BufferedReader(new FileReader(this.inputFile));
             String line;
             String[] lineSplit;
-        	String ini;
 			
-        	ini = input.readLine();
-            
         	while ((line = input.readLine()) != null) {
 				lineNum++;
                 lineSplit = line.split(",");
@@ -128,12 +122,7 @@ public class FSTPM {
                     break;
                 }
 			}
-        	lineSplit = ini.split(",");
-        	alg1.setting(Double.parseDouble(lineSplit[0]), Double.parseDouble(lineSplit[1]), Double.parseDouble(lineSplit[2]));
-        	diff = Double.parseDouble(lineSplit[2]);
-        	
 			input.close();
-            //tree.save();
 		}
 		catch (Exception e) {
 			logger.traceError("Error while reading input file. Line " + lineNum + " Skipped\nError Details:");
@@ -154,13 +143,12 @@ public class FSTPM {
 	protected void printResults() {
 		logger.trace("\nPerforming Run Time calculations..");
 
-		List<Long> combined = new ArrayList<Long>();
-		combined.addAll(insertRunTime);
-		combined.addAll(rangeRunTime);
-		combined.addAll(durationRunTime);
-		combined.addAll(candsRunTime);
-		combined.addAll(labelRunTime);
-		combined.addAll(fstpmRunTime);
+		fstpmRunTime.addAll(insertRunTime);
+		fstpmRunTime.addAll(rangeRunTime);
+		fstpmRunTime.addAll(durationRunTime);
+		fstpmRunTime.addAll(candsRunTime);
+		fstpmRunTime.addAll(labelRunTime);
+		fstpmRunTime.addAll(fstpmRunTime);
 
 		String result = "\n"+this.getClass().getSimpleName()+" --RESULTS--";
 
@@ -181,9 +169,6 @@ public class FSTPM {
         result += temp;
 		temp = "\n\nCords to Label operations: (in milliseconds) " + generateRuntimeReport(labelRunTime);
         logger.trace(temp);
-        result += temp;
-		temp = "\n\nCombined operations:(in milliseconds) "+ generateRuntimeReport(combined);
-        logger.trace( temp);
         result += temp;
         temp = "\n\nFSTPM operations:(in milliseconds) "+ generateRuntimeReport(fstpmRunTime);
         logger.trace( temp);
@@ -273,11 +258,9 @@ public class FSTPM {
 	//////////////// FSTPM ///////////////////
 	protected void patternExtraction(){
 		int oid;
-        double[] point;
         long start, end;
         long startrc, startlb, endrc, endlb;
         int lineNum = 0;
-        int time;
         int count = 0;
 		HashMap<List<String>, Integer> pattern = new HashMap<List<String>, Integer>();
         
@@ -296,12 +279,10 @@ public class FSTPM {
                 try{
                 	// Pick one node to be pivot : center
                     oid = Integer.parseInt(lineSplit[0]);
-                    
                     SpatialPoint sp = rbuilder.idMap.get(oid);
                     
                     System.out.println("\nprocessing node " + oid);
 
-                    
                     
                     System.out.println("Range search begin...");
                     // Find all neighbors within 2R
@@ -309,7 +290,7 @@ public class FSTPM {
                     start = System.currentTimeMillis();
                     double[] coord = sp.getCords();
                     
-                    List<SpatialPoint> result = rbuilder.rangeQuery(coord[0],coord[1], this.range*1000, this.range*1000);
+                    List<SpatialPoint> result = rbuilder.rangeQuery(coord[0],coord[1], this.range*0.01*2, this.range*0.01*2);
                     //List<SpatialPoint> result = tree.rangeSearch(center, this.range*0.01*2*diff/100000);    
                     end = System.currentTimeMillis();                    
                     
