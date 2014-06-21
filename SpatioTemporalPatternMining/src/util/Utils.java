@@ -1,8 +1,8 @@
 package util;
 
-import rstar.spatial.SpatialPoint;
-
 import java.util.List;
+
+import arbor.mining.rtree.rtree.SpatialPoint;
 
 /**
  * User: Lokesh

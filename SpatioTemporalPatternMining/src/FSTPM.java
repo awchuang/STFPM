@@ -13,13 +13,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import rstar.RStarTree;
-import rstar.spatial.SpatialPoint;
-import util.Trace;
 import algorithms.Version1;
+import arbor.mining.rtree.rtree.LeafEntry;
+import arbor.mining.rtree.rtree.SpatialPoint;
+import util.Trace;
 
 public class FSTPM {
-	private RStarTree tree;
+	//private RStarTree tree;
+	private RTreeBuilder rbuilder;
 	private Version1 alg1;
     private int dimension;
     private double range;
@@ -69,7 +70,9 @@ public class FSTPM {
 			this.printUsage();
 			System.exit(1);
 		}
-		tree = new RStarTree(dimension);
+		rbuilder = new RTreeBuilder();
+		
+		//tree = new RStarTree(dimension);
 		alg1 = new Version1();
 		this.insertRunTime = new ArrayList<Long>();
 		this.rangeRunTime = new ArrayList<Long>();
@@ -82,8 +85,8 @@ public class FSTPM {
 	}
 
 	protected void processInput() {
-        float oid;
-        float[] point;
+        int oid;
+        double[] point;
         long start, end;
         int lineNum = 0;
         String label;
@@ -103,13 +106,13 @@ public class FSTPM {
 
                 //insertion
 				try {
-                    oid = Float.parseFloat(lineSplit[0]);
+                    oid = Integer.parseInt(lineSplit[0]);
                     point = extractPoint(lineSplit, 1);
                     label = lineSplit[3];
                     time = Integer.parseInt(lineSplit[4]);
 
                     start = System.currentTimeMillis();
-					tree.insert(new SpatialPoint(point, oid, label, time));
+                    rbuilder.insert(point[0], point[1], oid, label, time);
                     end = System.currentTimeMillis();
 
                     insertRunTime.add(end - start);
@@ -130,16 +133,16 @@ public class FSTPM {
         	diff = Double.parseDouble(lineSplit[2]);
         	
 			input.close();
-            tree.save();
+            //tree.save();
 		}
 		catch (Exception e) {
 			logger.traceError("Error while reading input file. Line " + lineNum + " Skipped\nError Details:");
 		}
 	}
 
-    private float[] extractPoint(String[] points, int startPos) throws NumberFormatException
+    private double[] extractPoint(String[] points, int startPos) throws NumberFormatException
     {
-        float[] tmp = new float[this.dimension];
+    	double[] tmp = new double[this.dimension];
         for (int i = startPos, lineSplitLength = points.length;
              ((i < lineSplitLength) && (i < (startPos + this.dimension))); i++)
         {
@@ -269,8 +272,8 @@ public class FSTPM {
 	
 	//////////////// FSTPM ///////////////////
 	protected void patternExtraction(){
-		float oid;
-        float[] point;
+		int oid;
+        double[] point;
         long start, end;
         long startrc, startlb, endrc, endlb;
         int lineNum = 0;
@@ -292,12 +295,10 @@ public class FSTPM {
                 
                 try{
                 	// Pick one node to be pivot : center
-                    oid = Float.parseFloat(lineSplit[0]);
-                    point = extractPoint(lineSplit, 1);
-                    time = Integer.parseInt(lineSplit[4]);
-                    SpatialPoint center = new SpatialPoint(point);
+                    oid = Integer.parseInt(lineSplit[0]);
                     
-
+                    SpatialPoint sp = rbuilder.idMap.get(oid);
+                    
                     System.out.println("\nprocessing node " + oid);
 
                     
@@ -306,16 +307,19 @@ public class FSTPM {
                     // Find all neighbors within 2R
                     //System.out.println(center.getCords()[0] + "   " + center.getCords()[1] + "  " + this.range*0.01*2*diff*100000);
                     start = System.currentTimeMillis();
-                    List<SpatialPoint> result = tree.rangeSearch(center, this.range*0.01*2*diff/100000);    
+                    double[] coord = sp.getCords();
+                    
+                    List<SpatialPoint> result = rbuilder.rangeQuery(coord[0],coord[1], this.range*1000, this.range*1000);
+                    //List<SpatialPoint> result = tree.rangeSearch(center, this.range*0.01*2*diff/100000);    
                     end = System.currentTimeMillis();                    
                     
                     rangeRunTime.add(( end - start ));  
-                    
+                    System.out.println("There are "+result.size()+" points found from "+rbuilder.getRtreeSize());
                                        
                     System.out.println("Duration check begin...");
                     // First filtering : remove nodes those time duration > T 
                     start = System.currentTimeMillis();
-                    result = alg1.durationCheck(result, time, oid, duration);
+                    result = alg1.durationCheck(result, sp.getTime(), oid, duration);
                     end = System.currentTimeMillis();                    
                     
                     durationRunTime.add(( end - start ));  
@@ -331,7 +335,7 @@ public class FSTPM {
                     	// Second filtering : check whether all nodes in one candidate are located within range R
                     	List<List<SpatialPoint>> stPattern = new ArrayList<List<SpatialPoint>>();
                     	for(int i = 0; i < candidates.size(); i++){
-                    		if(alg1.rangeCheck(candidates.get(i), center, range) == true){
+                    		if(alg1.rangeCheck(candidates.get(i), sp, range) == true){
                     			stPattern.add(candidates.get(i));
                     		}
                     	}

@@ -1,14 +1,11 @@
-package rstar.spatial;
+package arbor.mining.rtree.rtree;
 
-import rstar.dto.PointDTO;
-import rstar.interfaces.IDtoConvertible;
-
-public class SpatialPoint implements IDtoConvertible {
+public class SpatialPoint {
     private int _dimension;
-    private float[] _cords;
-    private float  _oid;
+    private double[] _cords;
+    private int  _oid;
     private String _label;
-    private long _time;
+    private int _time;
 
     public SpatialPoint() {
     }
@@ -18,26 +15,26 @@ public class SpatialPoint implements IDtoConvertible {
         this._oid = -1;
     }
 
-    public SpatialPoint(float[] cords) {
+    public SpatialPoint(double[] cords) {
         this._cords = cords;
         this._dimension = cords.length;
         this._oid = -1;
     }
 
-    public SpatialPoint(float[] cords, float oid) {
+    public SpatialPoint(double[] cords, int oid) {
         this._cords = cords;
         this._dimension = cords.length;
         this._oid = oid;
     }
     
-    public SpatialPoint(float[] cords, float oid, String label) {
+    public SpatialPoint(double[] cords, int oid, String label) {
         this._cords = cords;
         this._dimension = cords.length;
         this._oid = oid;
         this._label = label;
     }
     
-    public SpatialPoint(float[] cords, float oid, String label, long time) {
+    public SpatialPoint(double[] cords, int oid, String label, int time) {
         this._cords = cords;
         this._dimension = cords.length;
         this._oid = oid;
@@ -45,23 +42,15 @@ public class SpatialPoint implements IDtoConvertible {
         this._time = time;
     }
 
-    public SpatialPoint(PointDTO dto) {
-        this._cords = dto.coords;
-        this._dimension = dto.coords.length;
-        this._oid = dto.oid;
-        this._label = dto.label;
-        this._time = dto.time;
-    }
-
     public int getDimension(){
         return _dimension;
     }
 
-    public void setCords(float[] data){
+    public void setCords(double[] data){
         this._cords = data;
     }
 
-    public float[] getCords() {
+    public double[] getCords() {
         return _cords;
     }
 
@@ -73,11 +62,11 @@ public class SpatialPoint implements IDtoConvertible {
         return _label;
     }
     
-    public long getTime() {
+    public int getTime() {
         return _time;
     }
 
-    public void setOid(float oid) {
+    public void setOid(int oid) {
         this._oid = oid;
     }
 
@@ -88,10 +77,10 @@ public class SpatialPoint implements IDtoConvertible {
      * @return distance from <pre>otherPoint</pre>
      */
     public float distance(SpatialPoint otherPoint) {
-        float[] otherPoints = otherPoint.getCords();
+    	double[] otherPoints = otherPoint.getCords();
         float distance = 0;
         for (int i = 0; i < _cords.length; i++) {
-            float tmp = (_cords[i] * _cords[i]) - (otherPoints[i] * otherPoints[i]);
+            double tmp = (_cords[i] * _cords[i]) - (otherPoints[i] * otherPoints[i]);
             if(tmp < 0)
                 tmp = -1 * tmp;
 
@@ -110,8 +99,4 @@ public class SpatialPoint implements IDtoConvertible {
         return str.toString();
     }
 
-    @Override
-    public PointDTO toDTO() {
-        return new PointDTO(_oid, _cords, _label, _time);
-    }
 }

@@ -3,7 +3,9 @@ package algorithms;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import rstar.spatial.SpatialPoint;
+
+import arbor.mining.rtree.rtree.LeafEntry;
+import arbor.mining.rtree.rtree.SpatialPoint;
 
 public class Version1 {
 	private double minX;
@@ -112,7 +114,7 @@ public class Version1 {
 	{
 		return (Math.PI/180)*degrees;
 	}*/
-		
+	
 	public List<SpatialPoint> durationCheck(List<SpatialPoint> result, int time, float oid, int duration){
 		List<SpatialPoint> re = new ArrayList<SpatialPoint>(1);
 		int size = result.size();
@@ -121,6 +123,19 @@ public class Version1 {
 			if(result.get(i).getOid() == oid)
 				re.add(0, result.get(i));
 			else if(result.get(i).getTime() - time < duration && result.get(i).getTime() - time >= 0)
+				re.add(result.get(i));
+		}		
+		return re;
+	}
+
+	public List<LeafEntry> durationCheck4LeafEntry(List<LeafEntry> result, int time, int oid, int duration){
+		List re = new ArrayList<LeafEntry>();
+		int size = result.size();
+		
+		for(int i = 0; i < size ; i++){
+			if(result.get(i).oid == oid)
+				re.add(0, result.get(i));
+			else if(result.get(i).time - time < duration && result.get(i).time - time >= 0)
 				re.add(result.get(i));
 		}		
 		return re;

@@ -2,9 +2,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.StringTokenizer;
 
+import arbor.mining.rtree.rtree.LeafEntry;
 import arbor.mining.rtree.rtree.RTree;
+import arbor.mining.rtree.rtree.SpatialPoint;
 import arbor.mining.rtree.spatialindex.IData;
 import arbor.mining.rtree.spatialindex.INode;
 import arbor.mining.rtree.spatialindex.ISpatialIndex;
@@ -20,7 +23,9 @@ import arbor.mining.rtree.storagemanager.RandomEvictionsBuffer;
 
 
 public class RTreeBuilder {
-	ISpatialIndex tree = null;
+	public ISpatialIndex tree = null;
+	public HashMap<Integer, SpatialPoint> idMap = new HashMap<Integer, SpatialPoint>();
+	
     public RTreeBuilder() {   
 			// Create a memory based storage manager.
 			PropertySet ps = new PropertySet();
@@ -57,12 +62,13 @@ public class RTreeBuilder {
 
 			tree = new RTree(ps2, mfile);
 	}
-    public void insert(double x, double y, int p_id) {
+    public void insert(double x, double y, int p_id, String label, int time) {
     	double[] f = new double[2];
     	f[0]=x;f[1]=y;
 		Point p = new Point(f);
-
-		//String data = (new Integer(p_id)).toString();
+        SpatialPoint e = new SpatialPoint(f, p_id, label, time);
+        idMap.put(p_id, e);
+        //String data = (new Integer(p_id)).toString();
 			// associate some data with this region. I will use a string that represents the
 			// region itself, as an example.
 			// NOTE: It is not necessary to associate any data here. A null pointer can be used. In that
@@ -83,8 +89,10 @@ public class RTreeBuilder {
 		//example of passing a null pointer as the associated data.
 		//if you need to store data in tree, use tree.insertData(data.getBytes(), r, id);
     }
-    
-    public ArrayList rangeQuery(double x, double y, double range_x, double range_y) {
+    public int getRtreeSize() {
+    	return idMap.size();
+    }
+    public ArrayList<SpatialPoint> rangeQuery(double x, double y, double range_x, double range_y) {
     	double[] bbox_1 = new double[2];
     	double[] bbox_2 = new double[2];
     	bbox_1[0]=x-range_x;
@@ -97,7 +105,12 @@ public class RTreeBuilder {
 		MyVisitor vis = new MyVisitor();
 		Region reg = new Region(bbox_1, bbox_2);
 		tree.containmentQuery(reg, vis);
-		return vis.list;
+		
+		ArrayList<SpatialPoint> ret = new ArrayList<SpatialPoint>();
+		for (int i = 0;i<vis.list.size();i++) {
+			ret.add(idMap.get(vis.list.get(i)));
+		}
+		return ret;
 	}
 
 	// example of a Visitor pattern.
