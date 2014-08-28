@@ -36,7 +36,24 @@ public class writeResult {
 		resultfile = "";
     }
     
-	protected void printResults() {
+	public void writeOutput(String fname, HashMap<List<String>, Integer> pattern) throws IOException{
+		FileWriter output = new FileWriter(fname);			
+        // sort hashmap by value (frequency)
+		List<Map.Entry<List<String>, Integer>> list_Data = new ArrayList<Map.Entry<List<String>, Integer>>(pattern.entrySet());
+        Collections.sort(list_Data, new Comparator<Map.Entry<List<String>, Integer>>(){
+            public int compare(Map.Entry<List<String>, Integer> entry1,
+                               Map.Entry<List<String>, Integer> entry2){
+                return (entry2.getValue() - entry1.getValue());
+            }
+        });
+        for (Map.Entry<List<String>, Integer> entry:list_Data) {
+        	output.write(entry.getKey() + " : " + pattern.get(entry.getKey()) + "\n");
+        }
+		output.close();
+		printResults();
+	}
+    
+	public void printResults() {
 		logger.trace("\nPerforming Run Time calculations..");
 
 		fstpmRunTime.addAll(rangeRunTime);
@@ -120,23 +137,6 @@ public class writeResult {
 		catch (IOException e) {
 			logger.traceError("IOException while writing results to " + fname);
 		}
-	}
-
-	
-	public void writeOutput(String fname, HashMap<List<String>, Integer> pattern) throws IOException{
-		FileWriter output = new FileWriter(fname);			
-        // sort hashmap by value (frequency)
-		List<Map.Entry<List<String>, Integer>> list_Data = new ArrayList<Map.Entry<List<String>, Integer>>(pattern.entrySet());
-        Collections.sort(list_Data, new Comparator<Map.Entry<List<String>, Integer>>(){
-            public int compare(Map.Entry<List<String>, Integer> entry1,
-                               Map.Entry<List<String>, Integer> entry2){
-                return (entry2.getValue() - entry1.getValue());
-            }
-        });
-        for (Map.Entry<List<String>, Integer> entry:list_Data) {
-        	output.write(entry.getKey() + " : " + pattern.get(entry.getKey()) + "\n");
-        }
-		output.close();
 	}
 
 }

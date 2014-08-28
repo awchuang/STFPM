@@ -10,7 +10,7 @@ import functions.writeResult;
 import arbor.mining.rtree.rtree.SpatialPoint;
 
 
-public class algorithm1 {
+public class algorithm2 {
 	private double range;
 	private int duration;
 	private String inputFile;
@@ -18,9 +18,8 @@ public class algorithm1 {
 	private static operations ops;
 	private static writeResult output;
     private static Trace logger;
-	private BufferedReader input;
 	
-	public algorithm1(double range, int duration, String dataFile, String inFile){
+	public algorithm2(double range, int duration, String dataFile, String inFile){
 		logger = Trace.getLogger(this.getClass().getSimpleName());
 		ops = new operations();
 		output = new writeResult();
@@ -31,16 +30,17 @@ public class algorithm1 {
         outputFile = this.getClass().getSimpleName() + "_" + dataFile + "_r" + range + "t" + duration + "_output.txt";
         inputFile = inFile;
 	}
-    
-	public void stfpm(RTreeBuilder rbuilder){
+	
+	protected void stfpm(RTreeBuilder rbuilder){
 		int oid;
         long start, end;
         long startrc, startlb, endrc, endlb;
         int lineNum = 0;
 		HashMap<List<String>, Integer> result = new HashMap<List<String>, Integer>();
+        
 		
 		try{
-			input = new BufferedReader(new FileReader(inputFile));
+			BufferedReader input =  new BufferedReader(new FileReader(this.inputFile));
 			String line;
 			String[] lineSplit;
 			List<SpatialPoint> EpNeighbor = new ArrayList<SpatialPoint>();
@@ -52,9 +52,10 @@ public class algorithm1 {
 			while ((line = input.readLine()) != null) {
 				lineNum++;
                 lineSplit = line.split(",");
+                
                 try{
                 	// Pick one event to be pivot : Ep
-                	oid = Integer.parseInt(lineSplit[0]);
+                    oid = Integer.parseInt(lineSplit[0]);
                     SpatialPoint Ep = rbuilder.idMap.get(oid);
                     
                     System.out.println("\nprocessing node " + oid);
@@ -63,10 +64,11 @@ public class algorithm1 {
                     System.out.println("Range search begin...");
                     start = System.currentTimeMillis();
                     double[] coord = Ep.getCords();
-                    EpNeighbor = rbuilder.rangeQuery(coord[0],coord[1], range*2, range*2);
+                    EpNeighbor = rbuilder.rangeQuery(coord[0],coord[1], this.range*2, this.range*2);
                     end = System.currentTimeMillis();  
-                    output.rangeRunTime.add(( end - start ));
-                    
+                    output.rangeRunTime.add(( end - start ));  
+                                       
+
                     // First filtering : remove nodes those time duration > T 
                     System.out.println("Duration check begin...");
                     start = System.currentTimeMillis();
@@ -82,17 +84,35 @@ public class algorithm1 {
                     if(EpNeighbor.size() > 1){
                         start = System.currentTimeMillis();
                     	stPatterns = ops.patternExtraction(EpNeighbor); 
-                    	/*for(int i = 0; i < stPatterns.size(); i++){
-                    		System.out.print(stPatterns.get(i).size() + ",");
-                    	}*/
             		
                     	startrc = System.currentTimeMillis();
                     	// Second filtering : check whether all nodes in one candidate are located within range R
+                    	
+                    	int[] flag = new int[stPatterns.size()];
+                    	for(int i = 0; i < stPatterns.size(); i++)
+                    		flag[i] = 0;
+
+						System.out.println("size=" + stPatterns.size());  
                     	for(int i = 0; i < stPatterns.size(); i++){
-                    		if(ops.rangeCheck(stPatterns.get(i), range) == true){
-                    			FstPatterns.add(stPatterns.get(i));
+                    		if(flag[i] == 0){
+	                    		if(ops.rangeCheck(stPatterns.get(i), range)){
+	                    			FstPatterns.add(stPatterns.get(i));
+	                    			flag[i] = 1;
+	                    			System.out.println(i);
+	                    			
+                    				List<SpatialPoint> tmp = new ArrayList<SpatialPoint>(stPatterns.get(i));
+	                    			for(int k =i+1 ; k < stPatterns.size(); k++){	   	
+	                    				tmp.retainAll(stPatterns.get(k));
+	                    				if(k != i && tmp.equals(stPatterns.get(k))){
+	                    						FstPatterns.add(stPatterns.get(k));
+	                    						flag[k] = 1;	                						
+	                    				}
+	            						tmp.clear();
+	            						tmp.addAll(stPatterns.get(i));
+	                    			}
+	                    		}
                     		}
-                    	}
+                    	}          
                     	endrc = System.currentTimeMillis();  
                     	output.rCheckRunTime.add(endrc - startrc);                  
                     	                    	
@@ -124,10 +144,10 @@ public class algorithm1 {
 			
 			output.writeOutput(outputFile, result);
 			
+			input.close();
 		}
 		catch (Exception e) {
 			logger.traceError("Error while reading input file. Line " + lineNum + " Skipped\nError Details:");
 		}
 	}
-
 }
