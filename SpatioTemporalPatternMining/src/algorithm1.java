@@ -77,14 +77,11 @@ public class algorithm1 {
                     output.durationRunTime.add(( end - start ));  
 
 
-                    // Generate all possible pattern : patterns
+                    // Generate all possible event sequences : stPatterns
                     System.out.println("Cands generation begin...");
                     if(EpNeighbor.size() > 1){
                         start = System.currentTimeMillis();
                     	stPatterns = ops.patternExtraction(EpNeighbor); 
-                    	/*for(int i = 0; i < stPatterns.size(); i++){
-                    		System.out.print(stPatterns.get(i).size() + ",");
-                    	}*/
             		
                     	startrc = System.currentTimeMillis();
                     	// Second filtering : check whether all nodes in one candidate are located within range R

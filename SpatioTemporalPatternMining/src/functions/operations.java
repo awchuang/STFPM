@@ -9,7 +9,6 @@ import arbor.mining.rtree.rtree.SpatialPoint;
 
 public class operations {
 	
-	// generate all combination size = 2~5
 	public List<List<SpatialPoint>> patternExtraction(List<SpatialPoint> src){
 		List<List<SpatialPoint>> result = new ArrayList<List<SpatialPoint>>();
     	List<SpatialPoint> to = new ArrayList<SpatialPoint>();
@@ -19,7 +18,7 @@ public class operations {
 		
 		System.out.println(src.size());
 		
-
+		
 		for (int i = 0; i < src.size(); i++){
 			List<SpatialPoint> one = new ArrayList<SpatialPoint>();
 			one.add(head);
@@ -55,8 +54,6 @@ public class operations {
 			}
 		}
 	}
-	
-
 
 	public Boolean rangeCheck(List<SpatialPoint> stPatterns, double range){
 		double dis = smallestenclosingcircle.makeCircle(stPatterns);

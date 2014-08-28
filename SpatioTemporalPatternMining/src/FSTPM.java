@@ -23,6 +23,10 @@ public class FSTPM {
 		controller.processInput();
 		System.out.println("Finished Processing file ...");
 		
+		/* 不同版本可以在這邊切換
+		 * v1 是最原始的版本，暴力解全部檢查過
+		 * v2 是在"range check的地方，從長的pattern開始檢查。若長pattern符合，則其subpattern也全部符合。"這樣的想法下加速(未完成)
+		 */
 		controller.v1.stfpm(controller.rbuilder);
 		//controller.v2.stfpm(controller.rbuilder);
 	
@@ -56,6 +60,18 @@ public class FSTPM {
         int lineNum = 0;
 
         try {
+        	/* input data format: <event id>,<latitude>,<longitude>,<label>,<time>
+        	 * 在這裡將將座標從經緯度轉為以經緯度(0,0)為基準的公里座標
+        	 *        |
+        	 *       y|         ●P(lat, long)
+        	 *        |
+        	 *        |____________
+        	 *  (經度0度,緯度0度)   x
+        	 *  
+        	 *  x 為 P在x軸上的投影，並轉換為公里
+        	 *  y 為P在y軸上的投影，並轉換為公里
+        	 */
+        	
             BufferedReader input =  new BufferedReader(new FileReader(this.inputFile));
             String line;
             String[] lineSplit;
