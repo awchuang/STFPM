@@ -91,12 +91,15 @@ public class SpatialPoint {
 
     @Override
     public String toString() {
-        StringBuilder str = new StringBuilder("[");
+        /*StringBuilder str = new StringBuilder("[");
         for (double cord : _cords) {
             str.append(cord).append(",");
-        }
+        }        
         str.append("]");
-        return str.toString();
+        return str.toString();*/
+    	
+    	return Integer.toString(_oid);
+
     }
 
 }
